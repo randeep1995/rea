@@ -86,16 +86,16 @@ function startFeed() {
   feed?.close?.();
   const meta = FEEDS.find((f) => f.id === state.feed) ?? FEEDS[0];
   $("feed").value = meta.id;
-  if (meta.needsKey && !state.keys[meta.id]) {
+  if (meta.hasKey && !meta.hasKey(state.keys)) {
     feed = undefined;
     setStatus("idle");
     banner(
-      `This feed needs a free Finnhub API key. <button class="ghost small" data-open-keys>Add key</button>`,
+      `${h(meta.keyHint)} <button class="ghost small" data-open-keys>Add key</button>`,
     );
     renderWatchlist([]);
     bars = [];
     chart.setBars(bars, { precision: 2 });
-    showChartMessage("Add a Finnhub key to load US stocks.");
+    showChartMessage("Add a key under API keys to load this feed.");
     return;
   }
   banner(null);
@@ -447,7 +447,10 @@ document.addEventListener("click", (e) => {
       renderAll();
     }
   } else if (t.id === "key-btn" || t.hasAttribute("data-open-keys")) {
-    $("keys-form").elements.finnhub.value = state.keys.finnhub ?? "";
+    const f = $("keys-form").elements;
+    f.finnhub.value = state.keys.finnhub ?? "";
+    f.alpacaKeyId.value = state.keys.alpaca?.keyId ?? "";
+    f.alpacaSecret.value = state.keys.alpaca?.secret ?? "";
     $("keys").showModal();
   } else if (t.id === "reset") {
     if (
@@ -463,11 +466,16 @@ document.addEventListener("click", (e) => {
 
 $("keys").addEventListener("close", () => {
   if ($("keys").returnValue !== "save") return;
-  const key = $("keys-form").elements.finnhub.value.trim();
-  if (key) state.keys.finnhub = key;
-  else delete state.keys.finnhub;
+  const f = $("keys-form").elements;
+  const finnhub = f.finnhub.value.trim();
+  const keyId = f.alpacaKeyId.value.trim();
+  const secret = f.alpacaSecret.value.trim();
+  state.keys = {
+    ...(finnhub && { finnhub }),
+    ...(keyId && secret && { alpaca: { keyId, secret } }),
+  };
   persist();
-  if (state.feed === "finnhub") startFeed();
+  if (state.feed !== "binance" && state.feed !== "simulated") startFeed();
 });
 
 $("feed").innerHTML = FEEDS.map(

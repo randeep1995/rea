@@ -488,3 +488,13 @@ dialog menu button {
     min-height: 200px;
   }
 }
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0 0 12px;
+  padding: 8px 12px 0;
+}
+legend {
+  color: var(--muted);
+  padding: 0 4px;
+}

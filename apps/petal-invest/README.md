@@ -46,16 +46,25 @@ streams real market data into a paper trading account.
 
 ### Market data
 
-| Feed | Data | Key |
-| --- | --- | --- |
-| Crypto · Binance | Real-time klines and tickers from Binance's public market-data endpoints (`data-api.binance.vision`) | None |
-| US stocks · Finnhub | Real-time trades over WebSocket, folded into candles in the browser | Free key from [finnhub.io](https://finnhub.io/register), entered under **API keys** |
-| Simulated | Seeded random walk | None, works offline |
+| Feed                | Data                                                                                                 | Key                                                                  |
+| ------------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Crypto · Binance    | Real-time klines and tickers from Binance's public market-data endpoints (`data-api.binance.vision`) | None                                                                 |
+| US stocks · Alpaca  | Up to 500 historical bars per timeframe plus real-time IEX trades over one shared WebSocket          | Free key ID and secret from [alpaca.markets](https://alpaca.markets) |
+| US stocks · Finnhub | Real-time trades only, folded into candles in the browser                                            | Free key from [finnhub.io](https://finnhub.io/register)              |
+| Simulated           | Seeded random walk                                                                                   | None, works offline                                                  |
 
-Finnhub's free plan has no historical candles. The chart then starts from
-the day's quote and builds from live trades, so it is sparse until trades
-arrive and empty outside US market hours. Keys stay in this browser's
-`localStorage` and are sent only to finnhub.io.
+Enter keys under **API keys**. They stay in this browser's `localStorage`
+and are sent only to the provider they belong to.
+
+Alpaca's free plan streams the IEX exchange only, so prices and volume can
+differ slightly from the consolidated tape, and it allows one streaming
+connection at a time (opening the terminal in two tabs disconnects one).
+Finnhub's free plan has no historical candles, so its charts start from the
+day's quote, build from live trades, and stay empty outside US market hours.
+
+Browser (CORS) access to these providers has not been exercised live. If a
+provider refuses requests from the page, the banner shows the error, and
+serving the terminal through a small same-origin proxy is the fix.
 
 The paper account starts with $100,000 and is separate from the Petal
 Invest practice account. No order leaves the browser.

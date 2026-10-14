@@ -219,3 +219,21 @@ test("orders are validated before touching the account", () => {
   assert.equal(bad({}, 0), "NoPrice");
   assert.deepEqual(a, createAccount(1000));
 });
+
+test("Alpaca nanosecond timestamps and bars parse to epoch seconds", async () => {
+  const { parseTime, parseBar, snapshotTicker } =
+    await import("../src/feeds/alpaca.js");
+  assert.equal(parseTime("2024-01-02T14:30:00.123456789Z"), 1_704_205_800);
+  assert.equal(parseTime("2024-01-02T14:30:00Z"), 1_704_205_800);
+  assert.deepEqual(
+    parseBar({ t: "2024-01-02T14:30:00Z", o: 1, h: 2, l: 0.5, c: 1.5, v: 9 }),
+    { time: 1_704_205_800, open: 1, high: 2, low: 0.5, close: 1.5, volume: 9 },
+  );
+  const t = snapshotTicker("AAPL", {
+    latestTrade: { p: 110 },
+    prevDailyBar: { c: 100 },
+  });
+  assert.equal(t.price, 110);
+  assert.ok(close(t.changePct, 0.1));
+  assert.equal(snapshotTicker("AAPL", {}), undefined);
+});

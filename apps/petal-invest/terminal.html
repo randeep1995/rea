@@ -147,16 +147,40 @@
       <form method="dialog" id="keys-form">
         <h2>Market data keys</h2>
         <p>
-          Crypto data from Binance needs no key. US stock data comes from
+          Crypto data from Binance needs no key. For US stocks, use a free
+          <a href="https://alpaca.markets" target="_blank" rel="noopener"
+            >Alpaca</a
+          >
+          account (live trades and full price history) or a free
           <a href="https://finnhub.io/register" target="_blank" rel="noopener"
             >Finnhub</a
-          >, which gives free keys. Your key stays in this browser and is only
-          sent to finnhub.io.
+          >
+          key (live trades only). Keys stay in this browser and are only sent to
+          the provider they belong to.
         </p>
-        <label class="field">
-          <span>Finnhub API key</span>
-          <input name="finnhub" autocomplete="off" spellcheck="false" />
-        </label>
+        <fieldset>
+          <legend>Alpaca</legend>
+          <label class="field">
+            <span>API key ID</span>
+            <input name="alpacaKeyId" autocomplete="off" spellcheck="false" />
+          </label>
+          <label class="field">
+            <span>Secret key</span>
+            <input
+              name="alpacaSecret"
+              type="password"
+              autocomplete="off"
+              spellcheck="false"
+            />
+          </label>
+        </fieldset>
+        <fieldset>
+          <legend>Finnhub</legend>
+          <label class="field">
+            <span>API key</span>
+            <input name="finnhub" autocomplete="off" spellcheck="false" />
+          </label>
+        </fieldset>
         <menu>
           <button value="cancel" class="ghost">Cancel</button>
           <button value="save" class="submit buy">Save</button>
