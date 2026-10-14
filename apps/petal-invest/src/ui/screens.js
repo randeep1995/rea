@@ -314,6 +314,11 @@ function activityScreen() {
             .join("")}</ul>`
         : `<div class="empty">No trades yet.</div>`
     }
+    <h2>Pro tools</h2>
+    <a class="card terminal-link" href="terminal.html">
+      <strong>📈 Petal Terminal</strong>
+      <span class="muted small">Live crypto and stock charts, indicators and paper trading.</span>
+    </a>
     <h2>Practice account</h2>
     <div class="card settings">
       <p>Investor style: <strong>${PROFILES[ctx.state.risk].label}</strong></p>

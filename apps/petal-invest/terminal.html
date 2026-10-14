@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#131722" />
+    <title>Petal Terminal</title>
+    <link rel="stylesheet" href="terminal.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" title="Back to Petal Invest"
+        >🌸 Petal <span>Terminal</span></a
+      >
+      <label class="feed-picker">
+        <span class="sr-only">Market data</span>
+        <select id="feed"></select>
+      </label>
+      <button id="key-btn" class="ghost" type="button">API keys</button>
+      <span id="status" class="status" role="status">Connecting…</span>
+      <span class="paper-badge" title="Orders never leave your browser"
+        >Paper trading</span
+      >
+    </header>
+
+    <div id="banner" class="banner" hidden></div>
+
+    <main class="layout">
+      <aside class="watchlist" aria-label="Watchlist">
+        <h2>Watchlist</h2>
+        <ul id="watchlist"></ul>
+      </aside>
+
+      <section class="chart-area" aria-label="Chart">
+        <div class="chart-toolbar">
+          <strong id="sym" class="sym"></strong>
+          <div
+            id="tfs"
+            class="btn-group"
+            role="group"
+            aria-label="Timeframe"
+          ></div>
+          <div
+            id="inds"
+            class="btn-group"
+            role="group"
+            aria-label="Indicators"
+          ></div>
+        </div>
+        <div id="ohlc" class="ohlc" aria-live="off"></div>
+        <div id="chart" class="chart"></div>
+      </section>
+
+      <aside class="ticket" aria-label="Order ticket">
+        <div class="side-tabs" role="tablist">
+          <button
+            role="tab"
+            data-side="buy"
+            class="buy active"
+            aria-selected="true"
+          >
+            Buy
+          </button>
+          <button
+            role="tab"
+            data-side="sell"
+            class="sell"
+            aria-selected="false"
+          >
+            Sell
+          </button>
+        </div>
+        <form id="order-form" novalidate>
+          <div class="seg" role="radiogroup" aria-label="Order type">
+            <label
+              ><input type="radio" name="type" value="market" checked />
+              Market</label
+            >
+            <label
+              ><input type="radio" name="type" value="limit" /> Limit</label
+            >
+          </div>
+          <label class="field" id="limit-field" hidden>
+            <span>Limit price</span>
+            <input name="limitPrice" inputmode="decimal" autocomplete="off" />
+          </label>
+          <label class="field">
+            <span>Quantity</span>
+            <input
+              name="qty"
+              inputmode="decimal"
+              autocomplete="off"
+              placeholder="0"
+            />
+          </label>
+          <div class="pct-row">
+            <button type="button" data-pct="0.25">25%</button>
+            <button type="button" data-pct="0.5">50%</button>
+            <button type="button" data-pct="1">Max</button>
+          </div>
+          <dl class="kv">
+            <div>
+              <dt>Last</dt>
+              <dd id="last">–</dd>
+            </div>
+            <div>
+              <dt>Est. total</dt>
+              <dd id="est">–</dd>
+            </div>
+            <div>
+              <dt>Available</dt>
+              <dd id="avail">–</dd>
+            </div>
+          </dl>
+          <p id="order-error" class="error" role="alert"></p>
+          <button id="submit" class="submit buy" type="submit">Buy</button>
+        </form>
+        <h2>Account</h2>
+        <dl class="kv" id="account"></dl>
+        <button id="reset" class="ghost small" type="button">
+          Reset paper account
+        </button>
+      </aside>
+
+      <section class="blotter" aria-label="Positions and orders">
+        <div class="blotter-tabs" role="tablist">
+          <button
+            role="tab"
+            data-tab="positions"
+            class="active"
+            aria-selected="true"
+          >
+            Positions
+          </button>
+          <button role="tab" data-tab="open" aria-selected="false">
+            Open orders
+          </button>
+          <button role="tab" data-tab="history" aria-selected="false">
+            History
+          </button>
+        </div>
+        <div id="blotter" class="blotter-body"></div>
+      </section>
+    </main>
+
+    <dialog id="keys">
+      <form method="dialog" id="keys-form">
+        <h2>Market data keys</h2>
+        <p>
+          Crypto data from Binance needs no key. US stock data comes from
+          <a href="https://finnhub.io/register" target="_blank" rel="noopener"
+            >Finnhub</a
+          >, which gives free keys. Your key stays in this browser and is only
+          sent to finnhub.io.
+        </p>
+        <label class="field">
+          <span>Finnhub API key</span>
+          <input name="finnhub" autocomplete="off" spellcheck="false" />
+        </label>
+        <menu>
+          <button value="cancel" class="ghost">Cancel</button>
+          <button value="save" class="submit buy">Save</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script type="module" src="src/terminal/main.js"></script>
+  </body>
+</html>

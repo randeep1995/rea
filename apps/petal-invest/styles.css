@@ -729,3 +729,8 @@ a:focus-visible {
     transition: none !important;
   }
 }
+.terminal-link {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
