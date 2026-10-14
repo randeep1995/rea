@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#fbf6f1" />
+    <title>Petal Invest</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="phone">
+      <main id="view" class="view"></main>
+      <nav id="tabs" class="tabs" hidden aria-label="Main">
+        <a href="#/home" data-tab="home"
+          ><span aria-hidden="true">◎</span>Home</a
+        >
+        <a href="#/discover" data-tab="discover"
+          ><span aria-hidden="true">✦</span>Discover</a
+        >
+        <a href="#/coach" data-tab="coach"
+          ><span aria-hidden="true">✿</span>Coach</a
+        >
+        <a href="#/activity" data-tab="activity"
+          ><span aria-hidden="true">≡</span>Activity</a
+        >
+      </nav>
+      <div id="sheet" class="sheet" hidden></div>
+    </div>
+    <script type="module" src="src/ui/app.js"></script>
+  </body>
+</html>
