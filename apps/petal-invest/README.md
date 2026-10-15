@@ -136,7 +136,7 @@ latest `sma20`, `ema50`, `rsi14`, `bb20`), `get_account`, `list_orders`,
 | Method and path                                                           | Purpose                              |
 | ------------------------------------------------------------------------- | ------------------------------------ |
 | `GET /api/health`                                                         | Liveness                             |
-| `GET /api/feeds`                                                          | Feeds and whether keys are set       |
+| `GET /api/feeds`                                                          | Available feeds and symbols          |
 | `GET /api/quote?symbol=BTCUSDT`                                           | Latest price                         |
 | `GET /api/bars?symbol=AAPL&timeframe=1h&limit=100&indicators=rsi14,sma20` | Bars and indicators                  |
 | `GET /api/account`                                                        | Equity, cash, positions, open orders |
