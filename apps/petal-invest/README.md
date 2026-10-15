@@ -67,7 +67,98 @@ provider refuses requests from the page, the banner shows the error, and
 serving the terminal through a small same-origin proxy is the fix.
 
 The paper account starts with $100,000 and is separate from the Petal
-Invest practice account. No order leaves the browser.
+Invest practice account. No order leaves the browser, and when the terminal
+is served by the agent server below, no order leaves your machine.
+
+## Test an AI agent on it
+
+`server/index.js` runs the same feeds and paper engine in Node 22+, with
+no dependencies, and gives agents two ways in:
+
+- an MCP server over stdio, for Claude Code, Claude Desktop or any MCP client;
+- a local HTTP JSON API on `127.0.0.1`, for agents written in any language.
+
+Both use one paper account saved to `.data/account.json`. Open the terminal
+from the same server and it mirrors that account live, so you can watch the
+agent's orders and fills on the chart (the badge reads "shared with agent").
+
+### Start the server
+
+```sh
+# Optional: stock data (crypto via Binance and SIM-* symbols need no key)
+export ALPACA_KEY_ID=... ALPACA_SECRET_KEY=...   # or FINNHUB_API_KEY=...
+node apps/petal-invest/server/index.js
+# open http://127.0.0.1:8765/terminal.html
+```
+
+Options: `--port` (or `PETAL_PORT`, default 8765) and `--data` (or
+`PETAL_DATA`) for the account file. Symbols route by shape: `BTCUSDT` goes
+to Binance, `SIM-*` to the simulated feed, anything else to Alpaca or
+Finnhub.
+
+### Connect Claude
+
+Claude Code, from your agent's project:
+
+```sh
+claude mcp add petal \
+  -e ALPACA_KEY_ID=... -e ALPACA_SECRET_KEY=... \
+  -- node /path/to/rea/apps/petal-invest/server/index.js --mcp
+```
+
+Or commit a project `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "petal": {
+      "command": "node",
+      "args": ["/path/to/rea/apps/petal-invest/server/index.js", "--mcp"],
+      "env": { "ALPACA_KEY_ID": "...", "ALPACA_SECRET_KEY": "..." }
+    }
+  }
+}
+```
+
+Claude Desktop takes the same `mcpServers` block in
+`claude_desktop_config.json`. With `--mcp`, the process also serves the
+terminal on the port; if a Petal server is already running there, the MCP
+process trades through it so the browser and agent share one account.
+
+Tools: `list_markets`, `get_quote`, `get_bars` (compact OHLCV rows plus
+latest `sma20`, `ema50`, `rsi14`, `bb20`), `get_account`, `list_orders`,
+`place_order` (market or limit, long only), `cancel_order` and
+`reset_account`. Failures come back as tool errors such as
+`InsufficientFunds: ...`, so the agent can read and recover.
+
+### HTTP API
+
+| Method and path                                                           | Purpose                              |
+| ------------------------------------------------------------------------- | ------------------------------------ |
+| `GET /api/health`                                                         | Liveness                             |
+| `GET /api/feeds`                                                          | Feeds and whether keys are set       |
+| `GET /api/quote?symbol=BTCUSDT`                                           | Latest price                         |
+| `GET /api/bars?symbol=AAPL&timeframe=1h&limit=100&indicators=rsi14,sma20` | Bars and indicators                  |
+| `GET /api/account`                                                        | Equity, cash, positions, open orders |
+| `GET /api/orders?status=open&limit=50`                                    | Order history                        |
+| `POST /api/orders` `{symbol, side, type, qty, limitPrice}`                | Place a paper order                  |
+| `DELETE /api/orders/:id`                                                  | Cancel an open order                 |
+| `POST /api/reset` `{cash}`                                                | Start a fresh account                |
+| `GET /api/events`                                                         | Server-sent account updates          |
+
+```sh
+curl -s -X POST localhost:8765/api/orders \
+  -H 'content-type: application/json' \
+  -d '{"symbol":"BTCUSDT","side":"buy","type":"market","qty":0.01}'
+```
+
+Errors return JSON `{"error":{"tag","message"}}` with a matching status
+(400 invalid order, 404 unknown order, 409 not open, 501 no stock feed
+configured, 502 provider failure, 503 no price yet).
+
+The server binds to `127.0.0.1` only and has no authentication; do not
+expose the port. Live provider connections from Node have not been
+exercised from this repository's test environment.
 
 ## Run it
 
@@ -89,9 +180,10 @@ node --test 'apps/petal-invest/tests/*.test.js'
 
 The tests cover the domain layer: deterministic market history, playlist
 weights, buy/sell validation and cost basis, all-or-nothing playlist
-orders, portfolio summaries, risk scoring and coach answers, plus the
+orders, portfolio summaries, risk scoring and coach answers, the
 terminal's candle building, indicators, Binance parsing and paper order
-matching.
+matching, plus the agent server's engine persistence, MCP protocol and
+HTTP API.
 
 ## Layout
 
@@ -99,8 +191,9 @@ matching.
 src/domain/   market, portfolio, playlists, risk profile, coach, candles,
               indicators, paper trading (pure, testable)
 src/ui/       router and events (app.js), screens, trade sheet, chart, formatting
-src/feeds/    market data: Binance, Finnhub, simulated
-src/terminal/ terminal UI, chart wrapper, settings store
+src/feeds/    market data: Binance, Alpaca, Finnhub, simulated
+src/terminal/ terminal UI, chart wrapper, settings store, shared account
+server/       agent server: engine, MCP (stdio), HTTP API, market routing
 src/store.js  localStorage persistence
 ```
 

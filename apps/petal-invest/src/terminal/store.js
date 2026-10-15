@@ -29,9 +29,16 @@ export function loadTerminal() {
   }
 }
 
-export function saveTerminal(state) {
+// keepStoredAccount: the terminal is mirroring the server's account, so
+// keep this browser's own paper account as it was.
+export function saveTerminal(state, { keepStoredAccount = false } = {}) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    let toSave = state;
+    if (keepStoredAccount) {
+      const stored = JSON.parse(localStorage.getItem(KEY) ?? "null");
+      toSave = { ...state, account: stored?.account ?? createAccount() };
+    }
+    localStorage.setItem(KEY, JSON.stringify(toSave));
   } catch {
     // Storage unavailable; the session still works.
   }

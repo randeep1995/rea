@@ -1,15 +1,10 @@
 import { TIMEFRAMES, barStart } from "../domain/candles.js";
-import {
-  placeOrder,
-  cancelOrder,
-  onPrice,
-  equity,
-  createAccount,
-} from "../domain/paper.js";
+import { equity } from "../domain/paper.js";
 import { FEEDS, createFeed } from "../feeds/index.js";
 import { escapeHtml as h } from "../ui/format.js";
 import { createPriceChart } from "./chart.js";
 import { loadTerminal, saveTerminal } from "./store.js";
+import { connectAccount } from "./account.js";
 
 const INDICATORS = [
   { id: "volume", label: "Vol" },
@@ -31,7 +26,8 @@ let loadToken = 0;
 let side = "buy";
 let blotterTab = "positions";
 
-const persist = () => saveTerminal(state);
+let sharedAccount = false;
+const persist = () => saveTerminal(state, { keepStoredAccount: sharedAccount });
 
 // ---------- formatting ----------
 
@@ -168,12 +164,7 @@ function onTicker({ symbol: s, price, changePct }) {
 let accountDirty = false;
 function recordPrice(s, price) {
   prices[s] = price;
-  const next = onPrice(state.account, s, price);
-  if (next !== state.account) {
-    state.account = next;
-    persist();
-    drawFills();
-  }
+  accounts.onPrice(s, price);
   if (!accountDirty) {
     accountDirty = true;
     requestAnimationFrame(() => {
@@ -326,21 +317,17 @@ form.addEventListener("input", (e) => {
   renderTicketNumbers();
 });
 
-form.addEventListener("submit", (e) => {
+form.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const result = placeOrder(state.account, readOrder(), prices[symbol]);
+  const result = await accounts.place(readOrder(), prices[symbol]);
   if (!result.ok) {
     $("order-error").textContent = result.error.message;
     return;
   }
-  state.account = result.value;
-  persist();
   form.elements.qty.value = "";
-  const placed = state.account.orders[0];
   $("order-error").textContent = "";
-  blotterTab = placed.status === "open" ? "open" : "positions";
-  drawFills();
-  renderAll();
+  blotterTab = result.value.status === "open" ? "open" : "positions";
+  renderBlotter();
 });
 
 document.querySelector(".pct-row").addEventListener("click", (e) => {
@@ -440,12 +427,7 @@ document.addEventListener("click", (e) => {
     blotterTab = t.dataset.tab;
     renderBlotter();
   } else if (t.dataset.cancel) {
-    const r = cancelOrder(state.account, Number(t.dataset.cancel));
-    if (r.ok) {
-      state.account = r.value;
-      persist();
-      renderAll();
-    }
+    accounts.cancel(Number(t.dataset.cancel));
   } else if (t.id === "key-btn" || t.hasAttribute("data-open-keys")) {
     const f = $("keys-form").elements;
     f.finnhub.value = state.keys.finnhub ?? "";
@@ -456,10 +438,7 @@ document.addEventListener("click", (e) => {
     if (
       confirm("Reset the paper account? Positions, orders and P&L are cleared.")
     ) {
-      state.account = createAccount();
-      persist();
-      drawFills();
-      renderAll();
+      accounts.reset();
     }
   }
 });
@@ -486,6 +465,21 @@ $("feed").addEventListener("change", (e) => {
   persist();
   startFeed();
 });
+
+const accounts = await connectAccount({
+  state,
+  persist,
+  onChange() {
+    drawFills();
+    renderAll();
+  },
+});
+if (accounts.shared) {
+  sharedAccount = true;
+  const badge = document.querySelector(".paper-badge");
+  badge.textContent = "Paper trading · shared with agent";
+  badge.title = "This account lives on the Petal server; agents trade it too";
+}
 
 renderToolbar();
 renderAll();
